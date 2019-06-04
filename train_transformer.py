@@ -32,8 +32,9 @@ class COCODataset(td.Dataset):
         img = Image.open(img_path).convert('RGB')
         transform = tv.transforms.Compose([
             tv.transforms.Resize(self.image_size),
+            tv.transforms.CenterCrop(self.image_size),
             tv.transforms.ToTensor(),
-            tv.transforms.Normalize(mean = (0.5, 0.5, 0.5), std = (0.5, 0.5, 0.5))
+            tv.transforms.Lambda(lambda x: x.mul(255))
             ])
         img = transform(img)
         return img
@@ -217,7 +218,7 @@ def main():
     transform = tv.transforms.Compose([
                 tv.transforms.Resize((256, 256)),
                 tv.transforms.ToTensor(),
-                tv.transforms.Normalize(mean = (0.5, 0.5, 0.5), std = (0.5, 0.5, 0.5))
+                tv.transforms.Lambda(lambda x: x.mul(255))
                 ])
     style = transform(style)
     
@@ -231,7 +232,7 @@ def main():
     features_style = vgg(normalize_batch(style))
     gram_style = [gram_matrix(y) for y in features_style]
     
-    net = TransformerNet(content_weight, style_weight, vgg, gram_style)
+    net = TransformerNet(content_weight, style_weight, vgg, gram_style).train()
     net = net.to(device)
     lr = 1e-3
     adam = torch.optim.Adam(net.parameters(), lr=lr)
