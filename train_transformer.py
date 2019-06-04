@@ -239,7 +239,8 @@ def main():
     exp = nt.Experiment(net, train_set, val_set, adam, stats_manager,
                     output_dir="RTST_" + transformer_path, batch_size = batch_size, perform_validation_during_training = False)
     exp.run(num_epochs=2)
-    torch.save(exp.net, transformer_path)
+    net = exp.net.eval().cpu()
+    torch.save(net, transformer_path)
     
 if __name__ == '__main__':
     main()
