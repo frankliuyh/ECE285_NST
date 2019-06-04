@@ -209,6 +209,8 @@ class UpsampleConvLayer(torch.nn.Module):
 def main():
     style_path = sys.argv[1]
     transformer_path = sys.argv[2]
+    content_weight = float(sys.argv[3])
+    style_weight = float(sys.argv[4])
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     style = Image.open(style_path).convert('RGB')
@@ -229,7 +231,7 @@ def main():
     features_style = vgg(normalize_batch(style))
     gram_style = [gram_matrix(y) for y in features_style]
     
-    net = TransformerNet(1e5, 1e10, vgg, gram_style)
+    net = TransformerNet(content_weight, style_weight, vgg, gram_style)
     net = net.to(device)
     lr = 1e-3
     adam = torch.optim.Adam(net.parameters(), lr=lr)
