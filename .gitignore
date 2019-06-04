@@ -106,3 +106,6 @@ venv.bak/
 # mac
 .DS_Store
 
+# checkpoints
+RTST_*
+
