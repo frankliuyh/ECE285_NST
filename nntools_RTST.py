@@ -267,11 +267,8 @@ class Experiment(object):
                 self.optimizer.step()
                 with torch.no_grad():
                     self.stats_manager.accumulate(loss.item(), x, y)
-#                 if i % 500 == 0:
-#                     with open('log_RTST.txt', 'a') as f:
-#                         print('Epoch {}, Iteration {}, Loss: {:.2f}'.format(self.epoch, i, self.stats_manager.summarize()), file=f)
-                if i % 2000 == 0:
-                    print('Epoch {}, Iteration {}, Loss: {:.2f}'.format(self.epoch, i, self.stats_manager.summarize()))
+                if i % 500 == 0:
+                    print('Epoch {}, Iteration {}, Loss: {:.2f}'.format(self.epoch, i, loss.item()))
             if not self.perform_validation_during_training:
                 self.history.append(self.stats_manager.summarize())
             else:
