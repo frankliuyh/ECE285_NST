@@ -1,4 +1,4 @@
-from __future__ import print_function
+# ref: https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 
 import torch
 import torch.nn as nn
@@ -15,8 +15,8 @@ import copy
 
 def image_loader(image_name, imsize, device):
     loader = transforms.Compose([
-                        transforms.Resize(imsize),  # scale imported image
-                        transforms.ToTensor()])  # transform it into a torch tensor
+                        transforms.Resize(imsize),
+                        transforms.ToTensor()])
     image = Image.open(image_name)
     # fake batch dimension required to fit network's input dimensions
     image = loader(image).unsqueeze(0)
@@ -35,10 +35,6 @@ class ContentLoss(nn.Module):
 
     def __init__(self, target,):
         super(ContentLoss, self).__init__()
-        # we 'detach' the target content from the tree used
-        # to dynamically compute the gradient: this is a stated value,
-        # not a variable. Otherwise the forward method of the criterion
-        # will throw an error.
         self.target = target.detach()
 
     def forward(self, input):
@@ -46,16 +42,10 @@ class ContentLoss(nn.Module):
         return input
 
 def gram_matrix(input):
-    a, b, c, d = input.size()  # a=batch size(=1)
-    # b=number of feature maps
-    # (c,d)=dimensions of a f. map (N=c*d)
+    a, b, c, d = input.size()
+    features = input.view(a * b, c * d)
+    G = torch.mm(features, features.t())
 
-    features = input.view(a * b, c * d)  # resise F_XL into \hat F_XL
-
-    G = torch.mm(features, features.t())  # compute the gram product
-
-    # we 'normalize' the values of the gram matrix
-    # by dividing by the number of element in each feature maps.
     return G.div(a * b * c * d)
 
 class StyleLoss(nn.Module):
@@ -69,19 +59,14 @@ class StyleLoss(nn.Module):
         self.loss = F.mse_loss(G, self.target)
         return input
 
-# create a module to normalize input image so we can easily put it in a
-# nn.Sequential
+# create a module to normalize input image so we can easily put it in a nn.Sequential
 class Normalization(nn.Module):
     def __init__(self, mean, std):
         super(Normalization, self).__init__()
-        # .view the mean and std to make them [C x 1 x 1] so that they can
-        # directly work with image Tensor of shape [B x C x H x W].
-        # B is batch size. C is number of channels. H is height and W is width.
         self.mean = mean.clone().detach().view(-1, 1, 1)
         self.std = std.clone().detach().view(-1, 1, 1)
 
     def forward(self, img):
-        # normalize img
         return (img - self.mean) / self.std
 
 def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
@@ -93,13 +78,9 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
     # normalization module
     normalization = Normalization(normalization_mean, normalization_std).to(device)
 
-    # just in order to have an iterable access to or list of content/syle
-    # losses
     content_losses = []
     style_losses = []
 
-    # assuming that cnn is a nn.Sequential, so we make a new nn.Sequential
-    # to put in modules that are supposed to be activated sequentially
     model = nn.Sequential(normalization)
 
     i = 0  # increment every time we see a conv
@@ -109,9 +90,6 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
             name = 'conv_{}'.format(i)
         elif isinstance(layer, nn.ReLU):
             name = 'relu_{}'.format(i)
-            # The in-place version doesn't play very nicely with the ContentLoss
-            # and StyleLoss we insert below. So we replace with out-of-place
-            # ones here.
             layer = nn.ReLU(inplace=False)
         elif isinstance(layer, nn.MaxPool2d):
             name = 'pool_{}'.format(i)
@@ -146,12 +124,10 @@ def get_style_model_and_losses(cnn, normalization_mean, normalization_std,
     return model, style_losses, content_losses
 
 def get_input_optimizer(input_img):
-    # this line to show that input is a parameter that requires a gradient
     optimizer = optim.LBFGS([input_img.requires_grad_()])
     return optimizer
 
 def run_style_transfer(content_path, style_path, size, device, num_steps=300, style_weight=1000000, content_weight=1):
-    """Run the style transfer."""
     style_img = image_loader(style_path, size, device)
     content_img = image_loader(content_path, size, device)
     input_img = content_img.clone().detach()
@@ -163,8 +139,7 @@ def run_style_transfer(content_path, style_path, size, device, num_steps=300, st
         normalization_mean, normalization_std, style_img, content_img, device)
     optimizer = get_input_optimizer(input_img)
 
-    run = [0]
-    while run[0] <= num_steps:
+    for i in range(num_steps):
 
         def closure():
             # correct the values of updated input image
