@@ -138,8 +138,9 @@ def run_style_transfer(content_path, style_path, size, device, num_steps=300, st
     model, style_losses, content_losses = get_style_model_and_losses(cnn,
         normalization_mean, normalization_std, style_img, content_img, device)
     optimizer = get_input_optimizer(input_img)
-
-    for i in range(num_steps):
+    
+    run = [0]
+    while run[0] <= num_steps:
 
         def closure():
             # correct the values of updated input image
@@ -170,7 +171,7 @@ def run_style_transfer(content_path, style_path, size, device, num_steps=300, st
     # a last correction...
     input_img.data.clamp_(0, 1)
 
-    _, axes = plt.subplots(ncols = 3, figsize = (9, 9))
+    _, axes = plt.subplots(ncols = 3, figsize = (16, 16))
     imshow(content_img, axes[0])
     imshow(input_img, axes[1])
     imshow(style_img, axes[2])
