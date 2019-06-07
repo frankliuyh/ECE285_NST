@@ -212,6 +212,10 @@ def main():
     transformer_path = sys.argv[2]
     content_weight = float(sys.argv[3])
     style_weight = float(sys.argv[4])
+    if len(sys.argv) == 6:
+        epochs = int(sys.argv[5])
+    else:
+        epochs = 2
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     style = Image.open(style_path).convert('RGB')
@@ -239,7 +243,7 @@ def main():
     stats_manager = nt.StatsManager()
     exp = nt.Experiment(net, train_set, val_set, adam, stats_manager,
                     output_dir="RTST_" + transformer_path, batch_size = batch_size, perform_validation_during_training = False)
-    exp.run(num_epochs=2)
+    exp.run(num_epochs = epochs)
     net = exp.net.eval().cpu()
     torch.save(net, transformer_path)
     
