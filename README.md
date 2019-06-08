@@ -19,7 +19,7 @@ original_NST.py -- Module for implementing classic style transfer (as described 
 
 train_transformer.py -- Module for implementing real-time style transfer (as described in Section 2)
 
-nntools_RTST.py -- Module for implementing checking point for training real-time style transfer
+nntools_RTST.py -- Module for implementing checking point for training real-time style transfer （edited from nntools.py provided in pervious assignments)
 
 models/* -- trained real-time style transfer models
 
